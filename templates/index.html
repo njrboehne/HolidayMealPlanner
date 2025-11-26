@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cooking Gantt Chart Planner</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 20px;
+      background: #f5f5f7;
+      color: #111827;
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"] {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 0.9rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 6px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #f9fafb;
+    }
+    button, input[type="submit"] {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .primary-btn {
+      background: #2563eb;
+      color: white;
+    }
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .danger-btn {
+      background: #ef4444;
+      color: white;
+    }
+    .flex {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .mt-2 { margin-top: 8px; }
+    .mt-4 { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cooking Gantt Chart Planner</h1>
+    <p>Plan prep and cooking steps so everything finishes exactly at your desired dinner time.</p>
+
+    <form method="post">
+      <div class="mt-2">
+        <label for="dinner_time">Desired Dinner Time</label>
+        <input
+          type="datetime-local"
+          id="dinner_time"
+          name="dinner_time"
+          value="{{ dinner_time }}"
+          required
+        />
+      </div>
+
+      <div class="mt-4">
+        <label>Dishes</label>
+        <table id="dishes-table">
+          <thead>
+            <tr>
+              <th>Dish Name</th>
+              <th>Prep Time (min)</th>
+              <th>Cook Time (min)</th>
+              <th>Cooking Temp (e.g. 375°F)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in dishes %}
+            <tr>
+              <td>
+                <input type="text" name="name" value="{{ d.name }}" />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  name="prep_minutes"
+                  value="{{ d.prep_minutes }}"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  name="cook_minutes"
+                  value="{{ d.cook_minutes }}"
+                />
+              </td>
+              <td>
+                <input type="text" name="temp" value="{{ d.temp }}" />
+              </td>
+              <td>
+                <button type="button" class="danger-btn" onclick="removeRow(this)">
+                  Remove
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <button type="button" class="secondary-btn" onclick="addRow()">
+          + Add Dish
+        </button>
+      </div>
+
+      <div class="mt-4 flex">
+        <input type="submit" value="Generate Schedule" class="primary-btn" />
+      </div>
+    </form>
+
+    <div class="mt-4">
+      {% if plot_div %}
+        {{ plot_div|safe }}
+      {% else %}
+        <p style="color:#6b7280; font-size:0.9rem;">
+          Enter at least one dish and click <strong>Generate Schedule</strong> to see the Gantt chart.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    function addRow() {
+      const tbody = document.querySelector("#dishes-table tbody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" name="name" /></td>
+        <td><input type="number" min="0" name="prep_minutes" /></td>
+        <td><input type="number" min="0" name="cook_minutes" /></td>
+        <td><input type="text" name="temp" /></td>
+        <td><button type="button" class="danger-btn" onclick="removeRow(this)">Remove</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function removeRow(button) {
+      const row = button.closest("tr");
+      const tbody = row.parentElement;
+      tbody.removeChild(row);
+
+      // Ensure there's always at least one row
+      if (tbody.rows.length === 0) {
+        addRow();
+      }
+    }
+  </script>
+</body>
+</html>
