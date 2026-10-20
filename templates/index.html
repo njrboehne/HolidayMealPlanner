@@ -2,193 +2,249 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cooking Gantt Chart Planner</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 20px;
-      background: #f5f5f7;
-      color: #111827;
-    }
-    h1 {
-      margin-bottom: 0.5rem;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px 24px;
-      border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-    input[type="text"],
-    input[type="number"],
-    input[type="datetime-local"] {
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 0.9rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-      margin-bottom: 16px;
-    }
-    th, td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 6px;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-    th {
-      background: #f9fafb;
-    }
-    button, input[type="submit"] {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .primary-btn {
-      background: #2563eb;
-      color: white;
-    }
-    .secondary-btn {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    .danger-btn {
-      background: #ef4444;
-      color: white;
-    }
-    .flex {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .mt-2 { margin-top: 8px; }
-    .mt-4 { margin-top: 16px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holiday Meal Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
-  <div class="container">
-    <h1>Cooking Gantt Chart Planner</h1>
-    <p>Plan prep and cooking steps so everything finishes exactly at your desired dinner time.</p>
-
-    <form method="post">
-      <div class="mt-2">
-        <label for="dinner_time">Desired Dinner Time</label>
-        <input
-          type="datetime-local"
-          id="dinner_time"
-          name="dinner_time"
-          value="{{ dinner_time }}"
-          required
-        />
+  <div class="page">
+    <header class="masthead">
+      <div class="mark" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="9" stroke="currentColor" stroke-width="1.6" />
+          <path d="M14 8.5V14l3.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       </div>
+      <div>
+        <p class="eyebrow">Holiday kitchen</p>
+        <h1>Meal Planner</h1>
+      </div>
+      <p class="lede">Set the moment you want to sit down. Every prep and cook step is timed backward so the dishes finish together.</p>
+    </header>
 
-      <div class="mt-4">
-        <label>Dishes</label>
-        <table id="dishes-table">
-          <thead>
-            <tr>
-              <th>Dish Name</th>
-              <th>Prep Time (min)</th>
-              <th>Cook Time (min)</th>
-              <th>Cooking Temp (e.g. 375°F)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+    <div class="workspace">
+      <section class="card no-print">
+        <div class="card-head">
+          <h2>Menu</h2>
+          <p>
+            {% if dish_count %}
+              {{ dish_count }} dish{% if dish_count != 1 %}es{% endif %} on the table
+            {% else %}
+              Add what you are cooking
+            {% endif %}
+          </p>
+        </div>
+
+        <form id="planner" method="post">
+          <div class="plan-settings">
+            <label class="field dinner-field" for="dinner_time">
+              <span>Dinner time</span>
+              <input type="datetime-local" id="dinner_time" name="dinner_time" value="{{ dinner_time }}" required />
+            </label>
+            <fieldset class="oven-count">
+              <legend>Ovens</legend>
+              <div class="segment">
+                <label>
+                  <input type="radio" name="oven_count" value="1" {% if oven_count == 1 %}checked{% endif %} />
+                  1
+                </label>
+                <label>
+                  <input type="radio" name="oven_count" value="2" {% if oven_count == 2 %}checked{% endif %} />
+                  2
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div id="dishes" class="dishes">
             {% for d in dishes %}
-            <tr>
-              <td>
-                <input type="text" name="name" value="{{ d.name }}" />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  name="prep_minutes"
-                  value="{{ d.prep_minutes }}"
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  name="cook_minutes"
-                  value="{{ d.cook_minutes }}"
-                />
-              </td>
-              <td>
-                <input type="text" name="temp" value="{{ d.temp }}" />
-              </td>
-              <td>
-                <button type="button" class="danger-btn" onclick="removeRow(this)">
-                  Remove
+            <article class="dish">
+              <div class="dish-top">
+                <span class="dish-index">Dish</span>
+                {% if d.start_by %}
+                  <span class="start-by">Start by {{ d.start_by }}</span>
+                {% endif %}
+                <button type="button" class="icon-btn" onclick="removeRow(this)" aria-label="Remove dish">
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  </svg>
                 </button>
-              </td>
-            </tr>
+              </div>
+              <div class="dish-grid">
+                <label class="field name">
+                  <span>Name</span>
+                  <input type="text" name="name" value="{{ d.name }}" placeholder="Roast turkey" />
+                </label>
+                <label class="field">
+                  <span>Prep min</span>
+                  <input type="number" min="0" name="prep_minutes" value="{{ d.prep_minutes }}" placeholder="30" inputmode="numeric" />
+                </label>
+                <label class="field">
+                  <span>Cook min</span>
+                  <input type="number" min="0" name="cook_minutes" value="{{ d.cook_minutes }}" placeholder="120" inputmode="numeric" />
+                </label>
+                <label class="field">
+                  <span>Heat</span>
+                  <input type="text" name="temp" value="{{ d.temp }}" placeholder="325°F" />
+                </label>
+              </div>
+            </article>
             {% endfor %}
-          </tbody>
-        </table>
+          </div>
 
-        <button type="button" class="secondary-btn" onclick="addRow()">
-          + Add Dish
-        </button>
-      </div>
+          <div class="actions">
+            <button type="submit" class="primary">Generate schedule</button>
+            <button type="button" class="ghost" onclick="addRow()">Add a dish</button>
+            <button type="button" class="ghost" onclick="loadSample()">Try a sample menu</button>
+          </div>
+        </form>
+      </section>
 
-      <div class="mt-4 flex">
-        <input type="submit" value="Generate Schedule" class="primary-btn" />
-      </div>
-    </form>
+      <section class="card" id="rundown" aria-live="polite">
+        {% if summary %}
+          <div class="card-head">
+            <h2>Rundown</h2>
+            <p>{{ summary.dinner_label }}</p>
+          </div>
+          <ul class="stats">
+            <li><span>First step</span><strong>{{ summary.first_step }}</strong></li>
+            <li><span>Sit down</span><strong>{{ summary.ready }}</strong></li>
+            <li><span>Lead time</span><strong>{{ summary.lead }}</strong></li>
+          </ul>
+          <p class="opener">{{ summary.opener }}</p>
+          {% for note in conflicts %}
+            <div class="note {{ note.tone }}">
+              <h3>{{ note.title }}</h3>
+              <ul>
+                {% for item in note.rows %}
+                <li><strong>{{ item.dish }}</strong><span>{{ item.detail }}</span></li>
+                {% endfor %}
+              </ul>
+              <p class="hint">{{ note.hint }}</p>
+            </div>
+          {% endfor %}
+          <ol class="timeline">
+            {% for step in schedule %}
+            <li class="step {{ step.phase_class }}">
+              <time>{{ step.time }}</time>
+              <span class="rail" aria-hidden="true"></span>
+              <div>
+                <p class="what"><span class="phase">{{ step.phase }}</span>{{ step.dish }}</p>
+                <p class="meta">{{ step.meta }}</p>
+              </div>
+            </li>
+            {% endfor %}
+            <li class="step dinner">
+              <time>{{ summary.ready }}</time>
+              <span class="rail" aria-hidden="true"></span>
+              <div>
+                <p class="what">Dinner is served</p>
+                <p class="meta">Everything finishes together.</p>
+              </div>
+            </li>
+          </ol>
+        {% else %}
+          <div class="empty">
+            <p class="eyebrow">Waiting on the menu</p>
+            <h2>The rundown appears here</h2>
+            {% if notice %}
+              <p class="notice">{{ notice }}</p>
+            {% endif %}
+            <p class="quiet">Build a schedule you can cook from, with a start time for every step.</p>
+            <ol class="steps">
+              <li><b>1</b><span>Set the time you want to eat.</span></li>
+              <li><b>2</b><span>Add each dish with prep, cook time, and heat.</span></li>
+              <li><b>3</b><span>Generate the schedule and follow the timeline.</span></li>
+            </ol>
+          </div>
+        {% endif %}
+      </section>
 
-    <div class="mt-4">
       {% if plot_div %}
-        {{ plot_div|safe }}
-      {% else %}
-        <p style="color:#6b7280; font-size:0.9rem;">
-          Enter at least one dish and click <strong>Generate Schedule</strong> to see the Gantt chart.
-        </p>
+      <section class="card span-2">
+        <div class="card-head">
+          <h2>Schedule</h2>
+        </div>
+        <div class="chart">
+          {{ plot_div|safe }}
+        </div>
+      </section>
       {% endif %}
     </div>
   </div>
 
   <script>
-    function addRow() {
-      const tbody = document.querySelector("#dishes-table tbody");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><input type="text" name="name" /></td>
-        <td><input type="number" min="0" name="prep_minutes" /></td>
-        <td><input type="number" min="0" name="cook_minutes" /></td>
-        <td><input type="text" name="temp" /></td>
-        <td><button type="button" class="danger-btn" onclick="removeRow(this)">Remove</button></td>
+    const SAMPLE = [
+      ["Roast turkey", "45", "180", "325°F"],
+      ["Sourdough stuffing", "25", "45", "350°F"],
+      ["Mashed potatoes", "20", "25", "stovetop"],
+      ["Green beans", "15", "10", "stovetop"],
+      ["Gravy", "10", "15", "stovetop"],
+      ["Dinner rolls", "10", "18", "375°F"],
+    ];
+
+    function rowFrom(values) {
+      const article = document.createElement("article");
+      article.className = "dish";
+      article.innerHTML = `
+        <div class="dish-top">
+          <span class="dish-index">Dish</span>
+          <button type="button" class="icon-btn" onclick="removeRow(this)" aria-label="Remove dish">
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="dish-grid">
+          <label class="field name">
+            <span>Name</span>
+            <input type="text" name="name" placeholder="Roast turkey" />
+          </label>
+          <label class="field">
+            <span>Prep min</span>
+            <input type="number" min="0" name="prep_minutes" placeholder="30" inputmode="numeric" />
+          </label>
+          <label class="field">
+            <span>Cook min</span>
+            <input type="number" min="0" name="cook_minutes" placeholder="120" inputmode="numeric" />
+          </label>
+          <label class="field">
+            <span>Heat</span>
+            <input type="text" name="temp" placeholder="325°F" />
+          </label>
+        </div>
       `;
-      tbody.appendChild(tr);
+      const inputs = article.querySelectorAll("input");
+      ["name", "prep", "cook", "temp"].forEach((_, index) => {
+        inputs[index].value = values[index] || "";
+      });
+      return article;
+    }
+
+    function addRow() {
+      document.querySelector("#dishes").appendChild(rowFrom(["", "", "", ""]));
     }
 
     function removeRow(button) {
-      const row = button.closest("tr");
-      const tbody = row.parentElement;
-      tbody.removeChild(row);
+      const root = document.querySelector("#dishes");
+      button.closest(".dish").remove();
+      if (!root.children.length) addRow();
+    }
 
-      // Ensure there's always at least one row
-      if (tbody.rows.length === 0) {
-        addRow();
-      }
+    {% if summary %}
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      document.querySelector("#rundown").scrollIntoView({ block: "start" });
+    }
+    {% endif %}
+
+    function loadSample() {
+      const root = document.querySelector("#dishes");
+      root.replaceChildren();
+      SAMPLE.forEach((row) => root.appendChild(rowFrom(row)));
+      document.querySelector("#planner").requestSubmit();
     }
   </script>
 </body>
